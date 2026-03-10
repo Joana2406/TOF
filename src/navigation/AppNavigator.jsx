@@ -1,18 +1,21 @@
+// © 2025–2026 Joana Uribe — Todos los derechos reservados.
+// Uso, copia o distribución sin autorización escrita está prohibido.
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator }     from '@react-navigation/stack';
 import { NavigationContainer }      from '@react-navigation/native';
 import { Ionicons }                 from '@expo/vector-icons';
 import { View, Text, StyleSheet }   from 'react-native';
+import { SafeAreaProvider }         from 'react-native-safe-area-context';
 import colors from '../theme/colors';
 import { PacientesProvider, usePacientes } from '../context/PacientesContext';
 import LoadingScreen from '../components/LoadingScreen';
 
-import HomeScreen         from '../screens/HomeScreen';
-import RecursosScreen     from '../screens/RecursosScreen';
-import PacientesScreen    from '../screens/PacientesScreen';
-import AgendaScreen       from '../screens/AgendaScreen';
-import EstadisticasScreen from '../screens/EstadisticasScreen';
+import HomeScreen            from '../screens/HomeScreen';
+import RecursosScreen        from '../screens/RecursosScreen';
+import PacientesScreen       from '../screens/PacientesScreen';
+import AgendaScreen          from '../screens/AgendaScreen';
+import EstadisticasScreen    from '../screens/EstadisticasScreen';
 import DetallePacienteScreen from '../screens/DetallePacienteScreen';
 import NuevoPacienteScreen   from '../screens/NuevoPacienteScreen';
 import NuevaSesionScreen     from '../screens/NuevaSesionScreen';
@@ -26,11 +29,11 @@ const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const tabIcons = {
-  Inicio:       'home',
-  Pacientes:    'people',
-  Agenda:       'calendar',
+  Inicio:         'home',
+  Pacientes:      'people',
+  Agenda:         'calendar',
   'Estadísticas': 'bar-chart',
-  Recursos:     'book',
+  Recursos:       'book',
 };
 
 function TabNavigator() {
@@ -68,7 +71,7 @@ function AppContent() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: colors.deepForest },
+        cardStyle: { backgroundColor: colors.deepForest, flex: 1 },
       }}
     >
       <Stack.Screen name="Main"            component={TabNavigator} />
@@ -86,11 +89,13 @@ function AppContent() {
 
 export default function AppNavigator() {
   return (
-    <PacientesProvider>
-      <NavigationContainer>
-        <AppContent />
-      </NavigationContainer>
-    </PacientesProvider>
+    <SafeAreaProvider>
+      <PacientesProvider>
+        <NavigationContainer>
+          <AppContent />
+        </NavigationContainer>
+      </PacientesProvider>
+    </SafeAreaProvider>
   );
 }
 

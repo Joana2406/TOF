@@ -1,3 +1,5 @@
+// © 2025–2026 Joana Uribe — Todos los derechos reservados.
+// Uso, copia o distribución sin autorización escrita está prohibido.
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
@@ -133,7 +135,7 @@ const styles = StyleSheet.create({
   progresoTxt:   { color: colors.textMuted, fontSize: 12, marginBottom: 6 },
   barBg:         { height: 6, backgroundColor: colors.darkGreen, borderRadius: 4 },
   barFill:       { height: 6, backgroundColor: colors.sage, borderRadius: 4 },
-  scroll:        { paddingHorizontal: 16 },
+  scroll:        { flex: 1, paddingHorizontal: 16 },
   acordeon:      { backgroundColor: colors.darkGreen, borderRadius: 16, marginBottom: 10, overflow: 'hidden' },
   acordeonHeader:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
   acordeonHeaderFilled: { borderLeftWidth: 3, borderLeftColor: colors.sage },

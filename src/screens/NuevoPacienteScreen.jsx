@@ -1,8 +1,10 @@
+// © 2025–2026 Joana Uribe — Todos los derechos reservados.
+// Uso, copia o distribución sin autorización escrita está prohibido.
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, TextInput, Alert,
-  KeyboardAvoidingView, Platform, useWindowDimensions
+  useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -86,10 +88,6 @@ export default function NuevoPacienteScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.safe}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
 
         {/* HEADER */}
         <View style={s.header}>
@@ -106,10 +104,11 @@ export default function NuevoPacienteScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* SCROLL — mismo patrón EstadisticasScreen */}
         <ScrollView
+          style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 60 }}
         >
           {/* En web: grid 2 columnas */}
           <View style={isWeb ? s.webGrid : null}>
@@ -159,7 +158,6 @@ export default function NuevoPacienteScreen({ navigation }) {
           <View style={{ height: 50 }} />
         </ScrollView>
 
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

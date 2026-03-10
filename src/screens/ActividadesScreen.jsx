@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// © 2025–2026 Joana Uribe — Todos los derechos reservados.
+// Uso, copia o distribución sin autorización escrita está prohibido.import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Modal, KeyboardAvoidingView, Platform,

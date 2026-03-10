@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+// © 2025–2026 Joana Uribe — Todos los derechos reservados.
+// Uso, copia o distribución sin autorización escrita está prohibido.
+import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet,
-  TouchableOpacity, useWindowDimensions, Platform
+  View, Text, StyleSheet, ScrollView,
+  TouchableOpacity, useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,72 +18,19 @@ const evaluaciones = [
 ];
 
 export default function EvaluacionScreen({ navigation }) {
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const [seleccionada, setSeleccionada] = useState(null);
 
-  const isWeb = Platform.OS === 'web';
   const isWide = width >= 600;
-  const maxW  = Math.min(width, 900);
-  const cardW = isWide ? (maxW - 48 - 16) / 2 : maxW - 32;
+  const maxW   = Math.min(width, 900);
+  const cardW  = isWide ? (maxW - 48 - 16) / 2 : maxW - 32;
 
   const canGoBack = navigation?.canGoBack?.() ?? false;
-
-  // Inyectar CSS solo en web para que el scroll funcione
-  useEffect(() => {
-    if (!isWeb) return;
-    const el = document.getElementById('evaluacion-scroll');
-    if (el) {
-      el.style.overflowY = 'auto';
-      el.style.height = `${height - 90}px`;
-    }
-  }, [height, isWeb]);
-
-  const cards = evaluaciones.map((ev, i) => (
-    <TouchableOpacity
-      key={i}
-      style={[
-        styles.card,
-        { width: cardW },
-        seleccionada === i && styles.cardActive,
-      ]}
-      onPress={() => setSeleccionada(seleccionada === i ? null : i)}
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeTxt}>{ev.nombre}</Text>
-        </View>
-        <View style={[styles.status, { backgroundColor: ev.completada ? colors.sage : colors.midGreen }]}>
-          <Ionicons name={ev.completada ? 'checkmark-circle' : 'time'} size={14} color={colors.mint} />
-          <Text style={styles.statusTxt}>{ev.completada ? 'Completada' : 'Pendiente'}</Text>
-        </View>
-      </View>
-      <Text style={styles.desc}>{ev.descripcion}</Text>
-      <View style={styles.areasRow}>
-        {ev.areas.map((a, j) => (
-          <View key={j} style={styles.areaChip}>
-            <Text style={styles.areaChipTxt}>{a}</Text>
-          </View>
-        ))}
-      </View>
-      {seleccionada === i && (
-        <View style={styles.expanded}>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Ionicons name="play" size={16} color={colors.deepForest} />
-            <Text style={styles.actionBtnTxt}>Iniciar evaluación</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.outlineBtn}>
-            <Ionicons name="document-text" size={16} color={colors.mint} />
-            <Text style={styles.outlineBtnTxt}>Ver resultados previos</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </TouchableOpacity>
-  ));
 
   return (
     <SafeAreaView style={styles.safe}>
 
-      {/* ── HEADER ─────────────────────────────────────────────── */}
+      {/* Header */}
       <View style={styles.topBar}>
         <View style={styles.topLeft}>
           {canGoBack && (
@@ -96,46 +45,58 @@ export default function EvaluacionScreen({ navigation }) {
         </View>
       </View>
 
-      {/* ── CONTENIDO ──────────────────────────────────────────── */}
-      {isWeb ? (
-        // En web: div nativo con scroll real
-        <div
-          id="evaluacion-scroll"
-          style={{
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            flex: 1,
-            height: height - 90,
-            paddingBottom: 40,
-          }}
-        >
-          <div style={{
-            display: 'flex',
-            flexDirection: isWide ? 'row' : 'column',
-            flexWrap: isWide ? 'wrap' : 'nowrap',
-            gap: 16,
-            justifyContent: isWide ? 'center' : 'flex-start',
-            padding: isWide ? 24 : 16,
-            alignItems: isWide ? 'flex-start' : 'center',
-          }}>
-            {cards}
-          </div>
-        </div>
-      ) : (
-        // En móvil: ScrollView normal
-        <View style={{ flex: 1 }}>
-          <View style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 12,
-            padding: 16,
-            paddingBottom: 40,
-            justifyContent: isWide ? 'center' : 'flex-start',
-          }}>
-            {cards}
-          </View>
-        </View>
-      )}
+      {/* Lista con scroll */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          styles.lista,
+          isWide && styles.listaWeb,
+        ]}
+      >
+        {evaluaciones.map((ev, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[
+              styles.card,
+              { width: cardW },
+              seleccionada === i && styles.cardActive,
+            ]}
+            onPress={() => setSeleccionada(seleccionada === i ? null : i)}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.badge}>
+                <Text style={styles.badgeTxt}>{ev.nombre}</Text>
+              </View>
+              <View style={[styles.status, { backgroundColor: ev.completada ? colors.sage : colors.midGreen }]}>
+                <Ionicons name={ev.completada ? 'checkmark-circle' : 'time'} size={14} color={colors.mint} />
+                <Text style={styles.statusTxt}>{ev.completada ? 'Completada' : 'Pendiente'}</Text>
+              </View>
+            </View>
+            <Text style={styles.desc}>{ev.descripcion}</Text>
+            <View style={styles.areasRow}>
+              {ev.areas.map((a, j) => (
+                <View key={j} style={styles.areaChip}>
+                  <Text style={styles.areaChipTxt}>{a}</Text>
+                </View>
+              ))}
+            </View>
+            {seleccionada === i && (
+              <View style={styles.expanded}>
+                <TouchableOpacity style={styles.actionBtn}>
+                  <Ionicons name="play" size={16} color={colors.deepForest} />
+                  <Text style={styles.actionBtnTxt}>Iniciar evaluación</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.outlineBtn}>
+                  <Ionicons name="document-text" size={16} color={colors.mint} />
+                  <Text style={styles.outlineBtnTxt}>Ver resultados previos</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+        <View style={{ height: 40 }} />
+      </ScrollView>
 
     </SafeAreaView>
   );
@@ -148,6 +109,10 @@ const styles = StyleSheet.create({
   backBtn:       { width: 36, height: 36, borderRadius: 11, backgroundColor: colors.darkGreen, justifyContent: 'center', alignItems: 'center' },
   title:         { color: colors.mint,      fontSize: 22, fontWeight: '700' },
   subtitle:      { color: colors.textMuted, fontSize: 12, marginTop: 2 },
+
+  lista:         { paddingHorizontal: 16, paddingBottom: 40 },
+  listaWeb:      { paddingHorizontal: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'center', alignItems: 'flex-start' },
+
   card:          { backgroundColor: colors.darkGreen, borderRadius: 18, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: 'transparent' },
   cardActive:    { borderColor: colors.sage },
   cardHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },

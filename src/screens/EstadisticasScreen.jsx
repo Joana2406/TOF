@@ -1,14 +1,14 @@
+// © 2025–2026 Joana Uribe — Todos los derechos reservados.
+// Uso, copia o distribución sin autorización escrita está prohibido.
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, Dimensions
+  TouchableOpacity, useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons }     from '@expo/vector-icons';
 import colors           from '../theme/colors';
 import { usePacientes } from '../context/PacientesContext';
-
-const { width } = Dimensions.get('window');
 
 /* Barra horizontal simple */
 function Barra({ label, valor, max, color: col }) {
@@ -37,6 +37,7 @@ function KPI({ icon, label, value, sub, color: col }) {
 }
 
 export default function EstadisticasScreen({ navigation }) {
+  const { width } = useWindowDimensions();
   const { pacientes, citas } = usePacientes();
   const [pacSel, setPacSel] = useState(null);
 
@@ -79,7 +80,7 @@ export default function EstadisticasScreen({ navigation }) {
         <Text style={s.subtitle}>Panel general TOF</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
 
         {/* KPIs globales */}
         <View style={s.kpiGrid}>
@@ -259,7 +260,7 @@ const bar = StyleSheet.create({
 });
 
 const kp = StyleSheet.create({
-  card:  { width: (width - 36) / 2, backgroundColor: colors.darkGreen, borderRadius: 16, padding: 16, gap: 4, borderLeftWidth: 3 },
+  card:  { width: '47%', backgroundColor: colors.darkGreen, borderRadius: 16, padding: 16, gap: 4, borderLeftWidth: 3 },
   val:   { color: colors.mint,      fontSize: 28, fontWeight: '700' },
   label: { color: colors.textMuted, fontSize: 12 },
   sub:   { color: colors.textMuted, fontSize: 11, fontStyle: 'italic' },

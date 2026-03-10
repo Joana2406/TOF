@@ -1,8 +1,10 @@
+// © 2025–2026 Joana Uribe — Todos los derechos reservados.
+// Uso, copia o distribución sin autorización escrita está prohibido.
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, Image, ActivityIndicator,
-  useWindowDimensions, KeyboardAvoidingView, Platform
+  useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -113,10 +115,6 @@ export default function PerfilScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.safe}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
         {/* ── HEADER ──────────────────────────────────────────── */}
         <View style={s.topBar}>
           <View style={s.topLeft}>
@@ -148,7 +146,12 @@ export default function PerfilScreen({ navigation }) {
           )}
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 60 }}
+        >
 
           {/* ── AVATAR — centrado siempre ────────────────────── */}
           <View style={[s.avatarSection, isWeb && s.avatarSectionWeb]}>
@@ -266,7 +269,6 @@ export default function PerfilScreen({ navigation }) {
 
           <View style={{ height: 48 }} />
         </ScrollView>
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

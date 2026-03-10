@@ -1,3 +1,5 @@
+// © 2025–2026 Joana Uribe — Todos los derechos reservados.
+// Uso, copia o distribución sin autorización escrita está prohibido.
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
@@ -148,11 +150,73 @@ export default function AgendaScreen({ navigation }) {
           </View>
 
           {isMobile && (
-            <DiaHeader
-              diaSelec={diaSelec} mes={mes}
-              citasDelDia={citasDelDia}
-              onAdd={() => setModal(true)}
-            />
+            <>
+              <DiaHeader
+                diaSelec={diaSelec} mes={mes}
+                citasDelDia={citasDelDia}
+                onAdd={() => setModal(true)}
+              />
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: pad, paddingBottom: 40 }}
+                style={{ flex: 1 }}
+              >
+                {citasDelDia.length === 0 ? (
+                  <View style={s.empty}>
+                    <Ionicons name="calendar-outline" size={32} color={colors.textMuted} />
+                    <Text style={s.emptyTxt}>Sin citas este día</Text>
+                    <TouchableOpacity style={s.emptyBtn} onPress={() => setModal(true)}>
+                      <Text style={s.emptyBtnTxt}>+ Agendar</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  citasDelDia
+                    .sort((a, b) => a.hora.localeCompare(b.hora))
+                    .map((cita) => {
+                      const pac    = pacientes.find(p => p.id === cita.pacienteId);
+                      const accent = tipoColor[cita.tipo] || colors.midGreen;
+                      return (
+                        <View key={cita.id} style={s.citaCard}>
+                          <View style={[s.citaBar, { backgroundColor: accent }]} />
+                          <View style={s.citaHoraWrap}>
+                            <Text style={s.citaHoraTxt}>{cita.hora}</Text>
+                          </View>
+                          <View style={s.citaBody}>
+                            <Text style={s.citaNombre} numberOfLines={1}>{pac?.nombre || 'Paciente'}</Text>
+                            <View style={[s.tipoBadge, { backgroundColor: accent + '30' }]}>
+                              <Text style={[s.tipoBadgeTxt, { color: accent }]}>{cita.tipo}</Text>
+                            </View>
+                            {cita.notas ? <Text style={s.citaNotas} numberOfLines={1}>{cita.notas}</Text> : null}
+                          </View>
+                          <View style={s.citaAcc}>
+                            {pac && (
+                              <TouchableOpacity
+                                style={s.accBtn}
+                                onPress={() => navigation.navigate('DetallePaciente', { pacienteId: pac.id })}
+                              >
+                                <Ionicons name="person-outline" size={14} color={colors.sage} />
+                              </TouchableOpacity>
+                            )}
+                            <TouchableOpacity
+                              style={s.accBtn}
+                              onPress={() => Alert.alert(
+                                'Eliminar',
+                                `¿Eliminar cita de ${pac?.nombre}?`,
+                                [
+                                  { text: 'Cancelar', style: 'cancel' },
+                                  { text: 'Eliminar', style: 'destructive', onPress: () => eliminarCita(cita.id) },
+                                ]
+                              )}
+                            >
+                              <Ionicons name="trash-outline" size={14} color="#e57373" />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      );
+                    })
+                )}
+              </ScrollView>
+            </>
           )}
         </View>
 

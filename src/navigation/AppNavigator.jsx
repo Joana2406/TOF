@@ -11,19 +11,20 @@ import colors from '../theme/colors';
 import { PacientesProvider, usePacientes } from '../context/PacientesContext';
 import LoadingScreen from '../components/LoadingScreen';
 
-import HomeScreen            from '../screens/HomeScreen';
-import RecursosScreen        from '../screens/RecursosScreen';
-import PacientesScreen       from '../screens/PacientesScreen';
-import AgendaScreen          from '../screens/AgendaScreen';
-import EstadisticasScreen    from '../screens/EstadisticasScreen';
-import DetallePacienteScreen from '../screens/DetallePacienteScreen';
-import NuevoPacienteScreen   from '../screens/NuevoPacienteScreen';
-import NuevaSesionScreen     from '../screens/NuevaSesionScreen';
-import AntecedentesScreen    from '../screens/AntecedentesScreen';
-import ActividadesScreen     from '../screens/ActividadesScreen';
-import EjerciciosScreen      from '../screens/EjerciciosScreen';
-import EvaluacionScreen      from '../screens/EvaluacionScreen';
-import PerfilScreen          from '../screens/PerfilScreen';
+import HomeScreen                from '../screens/HomeScreen';
+import RecursosScreen            from '../screens/RecursosScreen';
+import PacientesScreen           from '../screens/PacientesScreen';
+import AgendaScreen              from '../screens/AgendaScreen';
+import EstadisticasScreen        from '../screens/EstadisticasScreen';
+import DetallePacienteScreen     from '../screens/DetallePacienteScreen';
+import NuevoPacienteScreen       from '../screens/NuevoPacienteScreen';
+import NuevaSesionScreen         from '../screens/NuevaSesionScreen';
+import AntecedentesScreen        from '../screens/AntecedentesScreen';
+import ActividadesScreen         from '../screens/ActividadesScreen';
+import EjerciciosScreen          from '../screens/EjerciciosScreen';
+import EvaluacionScreen          from '../screens/EvaluacionScreen';
+import EvaluacionDetalleScreen from '../screens/Evaluaciondetallescreen';
+import PerfilScreen              from '../screens/PerfilScreen';
 
 const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -74,15 +75,26 @@ function AppContent() {
         cardStyle: { backgroundColor: colors.deepForest, flex: 1 },
       }}
     >
+      {/* ── Tabs principales ── */}
       <Stack.Screen name="Main"            component={TabNavigator} />
+
+      {/* ── Perfil ── */}
       <Stack.Screen name="Perfil"          component={PerfilScreen} />
+
+      {/* ── Pacientes ── */}
       <Stack.Screen name="DetallePaciente" component={DetallePacienteScreen} />
       <Stack.Screen name="NuevoPaciente"   component={NuevoPacienteScreen} />
       <Stack.Screen name="NuevaSesion"     component={NuevaSesionScreen} />
       <Stack.Screen name="Antecedentes"    component={AntecedentesScreen} />
+
+      {/* ── Recursos / Clínico ── */}
       <Stack.Screen name="Actividades"     component={ActividadesScreen} />
       <Stack.Screen name="Ejercicios"      component={EjerciciosScreen} />
+
+      {/* ── Evaluación ── */}
       <Stack.Screen name="Evaluacion"      component={EvaluacionScreen} />
+      <Stack.Screen name="EvaluacionDetalle"    component={EvaluacionDetalleScreen} />
+      <Stack.Screen name="EvaluacionResultados" component={EvaluacionDetalleScreen} />
     </Stack.Navigator>
   );
 }

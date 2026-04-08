@@ -150,6 +150,7 @@ export function PacientesProvider({ children }) {
   }, [citas, cargando]);
 
   const agregarPaciente = (paciente) => {
+    // ✅ sesiones: [] y evaluaciones: [] garantizados — nunca undefined
     const nuevo = { ...paciente, id: Date.now().toString(), sesiones: [], evaluaciones: [], activo: true };
     setPacientes(prev => [nuevo, ...prev]);
     return nuevo.id;

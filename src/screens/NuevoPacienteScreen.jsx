@@ -39,9 +39,9 @@ export default function NuevoPacienteScreen({ navigation }) {
   const { agregarPaciente } = usePacientes();
   const [guardando, setGuardando] = useState(false);
 
-  const isWeb  = width >= 600;
-  const maxW   = Math.min(width, 960);
-  const cardW  = isWeb ? (maxW - 48 - 16) / 2 : undefined;
+  const isWeb = width >= 600;
+  const maxW  = Math.min(width, 960);
+  const cardW = isWeb ? (maxW - 48 - 16) / 2 : undefined;
 
   const [form, setForm] = useState({
     nombre: '', edad: '', fechaNacimiento: '', sexo: 'Femenino',
@@ -51,21 +51,22 @@ export default function NuevoPacienteScreen({ navigation }) {
       heredofamiliares: '', personalesPatologicos: '',
       personalesNoPatologicos: '', quirurgicos: 'Ninguno',
       traumatologicos: 'Ninguno', ginecologicos: '',
-    }
+    },
   });
 
   const set    = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
   const setAnt = (key, val) => setForm(prev => ({
-    ...prev, antecedentes: { ...prev.antecedentes, [key]: val }
+    ...prev, antecedentes: { ...prev.antecedentes, [key]: val },
   }));
 
   const sexos = ['Femenino', 'Masculino', 'No binario', 'Prefiero no decir'];
 
   const guardar = async () => {
-    if (!form.nombre.trim()) { Alert.alert('Campo requerido', 'El nombre es obligatorio.'); return; }
+    if (!form.nombre.trim())      { Alert.alert('Campo requerido', 'El nombre es obligatorio.');      return; }
     if (!form.diagnostico.trim()) { Alert.alert('Campo requerido', 'El diagnóstico es obligatorio.'); return; }
     setGuardando(true);
     try {
+      // ✅ agregarPaciente ya inicializa sesiones:[] y evaluaciones:[] en el contexto
       const id = agregarPaciente({
         ...form,
         edad: form.edad ? parseInt(form.edad) : 0,
@@ -89,74 +90,73 @@ export default function NuevoPacienteScreen({ navigation }) {
   return (
     <SafeAreaView style={s.safe}>
 
-        {/* HEADER */}
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-            <Ionicons name="arrow-back" size={22} color={colors.mint} />
-          </TouchableOpacity>
-          <Text style={s.title}>Nuevo Paciente</Text>
-          <TouchableOpacity
-            onPress={guardar}
-            style={[s.saveBtn, guardando && s.saveBtnDisabled]}
-            disabled={guardando}
-          >
-            <Text style={s.saveBtnTxt}>{guardando ? 'Guardando...' : 'Guardar'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          style={{ flex: 1 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: 60 }}
+      {/* HEADER */}
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <Ionicons name="arrow-back" size={22} color={colors.mint} />
+        </TouchableOpacity>
+        <Text style={s.title}>Nuevo Paciente</Text>
+        <TouchableOpacity
+          onPress={guardar}
+          style={[s.saveBtn, guardando && s.saveBtnDisabled]}
+          disabled={guardando}
         >
-          {/* En web: grid 2 columnas */}
-          <View style={isWeb ? s.webGrid : null}>
+          <Text style={s.saveBtnTxt}>{guardando ? 'Guardando...' : 'Guardar'}</Text>
+        </TouchableOpacity>
+      </View>
 
-            <Seccion title="👤 Datos personales" cardW={cardW}>
-              <Campo label="Nombre completo" required value={form.nombre}          onChangeText={v => set('nombre', v)} />
-              <Campo label="Edad"                    value={form.edad}             onChangeText={v => set('edad', v)}             keyboardType="numeric" />
-              <Campo label="Fecha de nacimiento"     value={form.fechaNacimiento}  onChangeText={v => set('fechaNacimiento', v)}  placeholder="AAAA-MM-DD" />
-              <View style={s.campo}>
-                <Text style={s.label}>Sexo</Text>
-                <View style={s.optRow}>
-                  {sexos.map(sx => (
-                    <TouchableOpacity
-                      key={sx}
-                      style={[s.optChip, form.sexo === sx && s.optChipActive]}
-                      onPress={() => set('sexo', sx)}
-                    >
-                      <Text style={[s.optTxt, form.sexo === sx && s.optTxtActive]}>{sx}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: 60 }}
+      >
+        <View style={isWeb ? s.webGrid : null}>
+
+          <Seccion title="👤 Datos personales" cardW={cardW}>
+            <Campo label="Nombre completo" required value={form.nombre}         onChangeText={v => set('nombre', v)} />
+            <Campo label="Edad"                   value={form.edad}             onChangeText={v => set('edad', v)}             keyboardType="numeric" />
+            <Campo label="Fecha de nacimiento"    value={form.fechaNacimiento}  onChangeText={v => set('fechaNacimiento', v)}  placeholder="AAAA-MM-DD" />
+            <View style={s.campo}>
+              <Text style={s.label}>Sexo</Text>
+              <View style={s.optRow}>
+                {sexos.map(sx => (
+                  <TouchableOpacity
+                    key={sx}
+                    style={[s.optChip, form.sexo === sx && s.optChipActive]}
+                    onPress={() => set('sexo', sx)}
+                  >
+                    <Text style={[s.optTxt, form.sexo === sx && s.optTxtActive]}>{sx}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <Campo label="Teléfono"           value={form.telefono}    onChangeText={v => set('telefono', v)}    keyboardType="phone-pad" />
-              <Campo label="Correo electrónico" value={form.correo}      onChangeText={v => set('correo', v)}      keyboardType="email-address" />
-              <Campo label="Ocupación"          value={form.ocupacion}   onChangeText={v => set('ocupacion', v)} />
-              <Campo label="Estado civil"       value={form.estadoCivil} onChangeText={v => set('estadoCivil', v)} />
-              <Campo label="Escolaridad"        value={form.escolaridad} onChangeText={v => set('escolaridad', v)} />
-            </Seccion>
+            </View>
+            <Campo label="Teléfono"           value={form.telefono}    onChangeText={v => set('telefono', v)}    keyboardType="phone-pad" />
+            <Campo label="Correo electrónico" value={form.correo}      onChangeText={v => set('correo', v)}      keyboardType="email-address" />
+            <Campo label="Ocupación"          value={form.ocupacion}   onChangeText={v => set('ocupacion', v)} />
+            <Campo label="Estado civil"       value={form.estadoCivil} onChangeText={v => set('estadoCivil', v)} />
+            <Campo label="Escolaridad"        value={form.escolaridad} onChangeText={v => set('escolaridad', v)} />
+          </Seccion>
 
-            <Seccion title="🏥 Información clínica" cardW={cardW}>
-              <Campo label="Diagnóstico"           required value={form.diagnostico}    onChangeText={v => set('diagnostico', v)}    multiline />
-              <Campo label="Motivo de consulta"             value={form.motivoConsulta} onChangeText={v => set('motivoConsulta', v)} multiline />
-              <Campo label="Alergias"                       value={form.alergias}       onChangeText={v => set('alergias', v)} />
-              <Campo label="Medicamentos actuales"          value={form.medicamentos}   onChangeText={v => set('medicamentos', v)}   multiline />
-            </Seccion>
+          <Seccion title="🏥 Información clínica" cardW={cardW}>
+            <Campo label="Diagnóstico"           required value={form.diagnostico}    onChangeText={v => set('diagnostico', v)}    multiline />
+            <Campo label="Motivo de consulta"             value={form.motivoConsulta} onChangeText={v => set('motivoConsulta', v)} multiline />
+            <Campo label="Alergias"                       value={form.alergias}       onChangeText={v => set('alergias', v)} />
+            <Campo label="Medicamentos actuales"          value={form.medicamentos}   onChangeText={v => set('medicamentos', v)}   multiline />
+          </Seccion>
 
-            <Seccion title="📋 Antecedentes" cardW={cardW}>
-              <Campo label="Heredofamiliares"          value={form.antecedentes.heredofamiliares}        onChangeText={v => setAnt('heredofamiliares', v)}        multiline />
-              <Campo label="Personales patológicos"    value={form.antecedentes.personalesPatologicos}   onChangeText={v => setAnt('personalesPatologicos', v)}   multiline />
-              <Campo label="Personales no patológicos" value={form.antecedentes.personalesNoPatologicos} onChangeText={v => setAnt('personalesNoPatologicos', v)} multiline />
-              <Campo label="Quirúrgicos"               value={form.antecedentes.quirurgicos}             onChangeText={v => setAnt('quirurgicos', v)}             multiline />
-              <Campo label="Traumatológicos"           value={form.antecedentes.traumatologicos}         onChangeText={v => setAnt('traumatologicos', v)}         multiline />
-              <Campo label="Gineco-obstétricos"        value={form.antecedentes.ginecologicos}           onChangeText={v => setAnt('ginecologicos', v)}           multiline />
-            </Seccion>
+          <Seccion title="📋 Antecedentes" cardW={cardW}>
+            <Campo label="Heredofamiliares"          value={form.antecedentes.heredofamiliares}        onChangeText={v => setAnt('heredofamiliares', v)}        multiline />
+            <Campo label="Personales patológicos"    value={form.antecedentes.personalesPatologicos}   onChangeText={v => setAnt('personalesPatologicos', v)}   multiline />
+            <Campo label="Personales no patológicos" value={form.antecedentes.personalesNoPatologicos} onChangeText={v => setAnt('personalesNoPatologicos', v)} multiline />
+            <Campo label="Quirúrgicos"               value={form.antecedentes.quirurgicos}             onChangeText={v => setAnt('quirurgicos', v)}             multiline />
+            <Campo label="Traumatológicos"           value={form.antecedentes.traumatologicos}         onChangeText={v => setAnt('traumatologicos', v)}         multiline />
+            <Campo label="Gineco-obstétricos"        value={form.antecedentes.ginecologicos}           onChangeText={v => setAnt('ginecologicos', v)}           multiline />
+          </Seccion>
 
-          </View>
-          <View style={{ height: 50 }} />
-        </ScrollView>
+        </View>
+        <View style={{ height: 50 }} />
+      </ScrollView>
 
     </SafeAreaView>
   );

@@ -3,10 +3,45 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+// FIX: puntaje puede ser string, número u objeto { total, ... }
+function formatPuntaje(puntaje) {
+  if (!puntaje) return '—';
+  if (typeof puntaje === 'object') {
+    return puntaje.total ?? JSON.stringify(puntaje);
+  }
+  return String(puntaje);
+}
+
+// FIX: genera bloque SOAP si la sesión tiene algún campo soap_*
+function soapHTML(s) {
+  const SOAP = [
+    { key: 'soap_s', letra: 'S', titulo: 'Subjetivo',  color: '#8CB79B' },
+    { key: 'soap_o', letra: 'O', titulo: 'Objetivo',   color: '#e8c97a' },
+    { key: 'soap_a', letra: 'A', titulo: 'Análisis',   color: '#a8a8e8' },
+    { key: 'soap_p', letra: 'P', titulo: 'Plan',       color: '#a8d5a2' },
+  ];
+  const items = SOAP.filter(c => s[c.key]?.trim());
+  if (items.length === 0) return '';
+
+  return `
+    <div class="soap-wrap">
+      <div class="soap-title">Nota SOAP</div>
+      <div class="soap-grid">
+        ${items.map(c => `
+          <div class="soap-item" style="border-left:3px solid ${c.color};">
+            <span class="soap-letra" style="color:${c.color};">${c.letra} — ${c.titulo}</span>
+            <p class="soap-texto">${s[c.key].trim()}</p>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
 export async function exportarExpedientePDF(paciente) {
-  const ant = paciente.antecedentes || {};
+  const ant   = paciente.antecedentes || {};
   const fecha = new Date().toLocaleDateString('es-MX', {
-    year: 'numeric', month: 'long', day: 'numeric'
+    year: 'numeric', month: 'long', day: 'numeric',
   });
 
   const sesionesHTML = paciente.sesiones.length === 0
@@ -15,13 +50,18 @@ export async function exportarExpedientePDF(paciente) {
         <div class="card">
           <div class="card-header">
             <span class="badge">${s.fecha}</span>
-            <span class="muted">⏱ ${s.duracion} &nbsp;|&nbsp; 👩‍⚕️ ${s.terapeuta}</span>
+            <span class="muted">⏱ ${s.duracion || '—'} &nbsp;|&nbsp; 👩‍⚕️ ${s.terapeuta || '—'}</span>
           </div>
-          ${s.objetivo  ? `<p><strong>Objetivo:</strong> ${s.objetivo}</p>` : ''}
-          <p><strong>Actividades:</strong> ${s.actividades.join(', ')}</p>
-          ${s.respuesta ? `<p><strong>Respuesta:</strong> ${s.respuesta}</p>` : ''}
-          ${s.notas     ? `<p><strong>Notas:</strong> ${s.notas}</p>` : ''}
-          ${s.planSiguiente ? `<p><strong>Plan siguiente sesión:</strong> ${s.planSiguiente}</p>` : ''}
+          ${s.objetivo       ? `<p><strong>Objetivo:</strong> ${s.objetivo}</p>`                   : ''}
+          ${s.actividades?.length
+            ? `<p><strong>Actividades:</strong> ${s.actividades.join(', ')}</p>`
+            : ''}
+          ${soapHTML(s)}
+          ${!s.soap_s && !s.soap_o && !s.soap_a && !s.soap_p ? `
+            ${s.respuesta     ? `<p><strong>Respuesta:</strong> ${s.respuesta}</p>`       : ''}
+            ${s.notas         ? `<p><strong>Notas:</strong> ${s.notas}</p>`               : ''}
+            ${s.planSiguiente ? `<p><strong>Plan siguiente:</strong> ${s.planSiguiente}</p>` : ''}
+          ` : ''}
         </div>`).join('');
 
   const evaluacionesHTML = paciente.evaluaciones.length === 0
@@ -32,8 +72,10 @@ export async function exportarExpedientePDF(paciente) {
             <span class="badge green">${ev.nombre}</span>
             <span class="muted">${ev.fecha}</span>
           </div>
-          <p><strong>Resultado:</strong> ${ev.puntaje}</p>
-          <p>${ev.observaciones}</p>
+          <p><strong>Resultado:</strong> ${formatPuntaje(ev.puntaje)}</p>
+          ${ev.interpretacion ? `<p><strong>Interpretación:</strong> ${ev.interpretacion}</p>` : ''}
+          ${ev.observaciones  ? `<p>${ev.observaciones}</p>`                                   : ''}
+          ${ev.notas          ? `<p class="muted">${ev.notas}</p>`                             : ''}
         </div>`).join('');
 
   const html = `
@@ -45,9 +87,12 @@ export async function exportarExpedientePDF(paciente) {
     <title>Expediente – ${paciente.nombre}</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: 'Georgia', serif; color: #1a1a1a; background: #fff; font-size: 13px; line-height: 1.6; }
+      body { font-family: 'Georgia', serif; color: #1a1a1a; background: #fff;
+             font-size: 13px; line-height: 1.6; }
 
-      .header { background: linear-gradient(135deg, #051F20, #235347); color: #DBF0DD; padding: 32px 40px; }
+      /* ── PORTADA ── */
+      .header { background: linear-gradient(135deg, #051F20, #235347);
+                color: #DBF0DD; padding: 32px 40px; }
       .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
       .logo { font-size: 28px; font-weight: 900; letter-spacing: 3px; color: #8CB79B; }
       .logo-sub { font-size: 11px; color: #8CB79B; letter-spacing: 1px; margin-top: 2px; }
@@ -55,32 +100,55 @@ export async function exportarExpedientePDF(paciente) {
       .patient-name { font-size: 26px; font-weight: bold; margin-top: 20px; color: #DBF0DD; }
       .patient-diag { font-size: 14px; color: #8CB79B; margin-top: 4px; }
       .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-      .chip { background: rgba(255,255,255,0.12); padding: 4px 14px; border-radius: 20px; font-size: 11px; color: #DBF0DD; }
+      .chip  { background: rgba(255,255,255,0.12); padding: 4px 14px;
+               border-radius: 20px; font-size: 11px; color: #DBF0DD; }
 
+      /* ── CUERPO ── */
       .body { padding: 30px 40px; }
-
       .section { margin-bottom: 28px; }
-      .section-title { font-size: 15px; font-weight: bold; color: #235347; border-left: 4px solid #8CB79B; padding-left: 10px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .section-title { font-size: 15px; font-weight: bold; color: #235347;
+                       border-left: 4px solid #8CB79B; padding-left: 10px;
+                       margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-      .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .info-row { display: flex; gap: 6px; font-size: 12px; }
+      /* Info grid */
+      .info-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .info-row   { display: flex; gap: 6px; font-size: 12px; }
       .info-label { color: #666; min-width: 120px; font-style: italic; }
       .info-value { color: #1a1a1a; font-weight: 500; }
 
-      .card { background: #f7faf7; border: 1px solid #d4e8d4; border-radius: 8px; padding: 14px; margin-bottom: 10px; }
-      .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-      .badge { background: #235347; color: #DBF0DD; padding: 3px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+      /* Tarjetas de sesión / evaluación */
+      .card { background: #f7faf7; border: 1px solid #d4e8d4;
+              border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+      .card-header { display: flex; justify-content: space-between;
+                     align-items: center; margin-bottom: 8px; }
+      .badge       { background: #235347; color: #DBF0DD; padding: 3px 12px;
+                     border-radius: 12px; font-size: 11px; font-weight: bold; }
       .badge.green { background: #8CB79B; color: #051F20; }
-      .muted { color: #888; font-size: 11px; }
-      .card p { font-size: 12px; margin-bottom: 4px; color: #333; }
-      .empty { color: #aaa; font-style: italic; font-size: 12px; }
+      .muted       { color: #888; font-size: 11px; }
+      .card p      { font-size: 12px; margin-bottom: 4px; color: #333; }
+      .empty       { color: #aaa; font-style: italic; font-size: 12px; }
 
-      .ant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-      .ant-item { background: #f7faf7; border: 1px solid #d4e8d4; border-radius: 8px; padding: 12px; }
-      .ant-label { font-size: 10px; font-weight: bold; color: #235347; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+      /* ── SOAP ── */
+      .soap-wrap  { background: #f0f7f2; border: 1px solid #c8dfc8;
+                    border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
+      .soap-title { font-size: 11px; font-weight: bold; color: #235347;
+                    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+      .soap-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .soap-item  { padding-left: 8px; }
+      .soap-letra { font-size: 10px; font-weight: bold;
+                    text-transform: uppercase; display: block; margin-bottom: 2px; }
+      .soap-texto { font-size: 12px; color: #333; line-height: 1.5; margin: 0; }
+
+      /* Antecedentes */
+      .ant-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .ant-item  { background: #f7faf7; border: 1px solid #d4e8d4;
+                   border-radius: 8px; padding: 12px; }
+      .ant-label { font-size: 10px; font-weight: bold; color: #235347;
+                   text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
       .ant-value { font-size: 12px; color: #333; }
 
-      .footer { background: #051F20; color: #8CB79B; text-align: center; padding: 16px; font-size: 10px; margin-top: 40px; }
+      .footer  { background: #051F20; color: #8CB79B; text-align: center;
+                 padding: 16px; font-size: 10px; margin-top: 40px; }
       .divider { border: none; border-top: 1px solid #d4e8d4; margin: 20px 0; }
 
       @media print { body { -webkit-print-color-adjust: exact; } }
@@ -88,16 +156,13 @@ export async function exportarExpedientePDF(paciente) {
   </head>
   <body>
 
-    <!-- PORTADA -->
     <div class="header">
       <div class="header-top">
         <div>
           <div class="logo">TOF</div>
           <div class="logo-sub">Terapia Ocupacional Fernanda</div>
         </div>
-        <div class="header-date">
-          Expediente generado<br/>${fecha}
-        </div>
+        <div class="header-date">Expediente generado<br/>${fecha}</div>
       </div>
       <div class="patient-name">${paciente.nombre}</div>
       <div class="patient-diag">${paciente.diagnostico}</div>
@@ -112,7 +177,6 @@ export async function exportarExpedientePDF(paciente) {
 
     <div class="body">
 
-      <!-- DATOS PERSONALES -->
       <div class="section">
         <div class="section-title">👤 Datos personales</div>
         <div class="info-grid">
@@ -127,7 +191,6 @@ export async function exportarExpedientePDF(paciente) {
 
       <hr class="divider"/>
 
-      <!-- INFORMACIÓN CLÍNICA -->
       <div class="section">
         <div class="section-title">🏥 Información clínica</div>
         <div class="info-grid">
@@ -141,17 +204,16 @@ export async function exportarExpedientePDF(paciente) {
 
       <hr class="divider"/>
 
-      <!-- ANTECEDENTES -->
       <div class="section">
         <div class="section-title">📋 Antecedentes clínicos</div>
         <div class="ant-grid">
           ${[
-            { label: 'Heredofamiliares',         key: 'heredofamiliares' },
-            { label: 'Personales patológicos',   key: 'personalesPatologicos' },
-            { label: 'Personales no patológicos',key: 'personalesNoPatologicos' },
-            { label: 'Quirúrgicos',              key: 'quirurgicos' },
-            { label: 'Traumatológicos',          key: 'traumatologicos' },
-            { label: 'Gineco-obstétricos',       key: 'ginecologicos' },
+            { label: 'Heredofamiliares',          key: 'heredofamiliares' },
+            { label: 'Personales patológicos',    key: 'personalesPatologicos' },
+            { label: 'Personales no patológicos', key: 'personalesNoPatologicos' },
+            { label: 'Quirúrgicos',               key: 'quirurgicos' },
+            { label: 'Traumatológicos',           key: 'traumatologicos' },
+            { label: 'Gineco-obstétricos',        key: 'ginecologicos' },
           ].map(a => `
             <div class="ant-item">
               <div class="ant-label">${a.label}</div>
@@ -162,7 +224,6 @@ export async function exportarExpedientePDF(paciente) {
 
       <hr class="divider"/>
 
-      <!-- SESIONES -->
       <div class="section">
         <div class="section-title">🗓 Historial de sesiones</div>
         ${sesionesHTML}
@@ -170,7 +231,6 @@ export async function exportarExpedientePDF(paciente) {
 
       <hr class="divider"/>
 
-      <!-- EVALUACIONES -->
       <div class="section">
         <div class="section-title">📊 Evaluaciones aplicadas</div>
         ${evaluacionesHTML}
@@ -187,15 +247,13 @@ export async function exportarExpedientePDF(paciente) {
 
   try {
     const { uri } = await Print.printToFileAsync({ html, base64: false });
-
     const nombreArchivo = `TOF_Expediente_${paciente.nombre.replace(/ /g, '_')}_${Date.now()}.pdf`;
-
     const puedeCompartir = await Sharing.isAvailableAsync();
     if (puedeCompartir) {
       await Sharing.shareAsync(uri, {
-        mimeType: 'application/pdf',
+        mimeType:    'application/pdf',
         dialogTitle: `Expediente de ${paciente.nombre}`,
-        UTI: 'com.adobe.pdf',
+        UTI:         'com.adobe.pdf',
       });
     } else {
       throw new Error('Compartir no disponible en este dispositivo');
